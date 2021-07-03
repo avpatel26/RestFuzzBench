@@ -21,11 +21,21 @@ RUN sudo apt-get install -y apt-transport-https
 RUN  sudo apt-get update 
 RUN  sudo apt-get install -y dotnet-sdk-5.0
 
-RUN apt-get -y install python3.8
+RUN sudo apt-get -y install python3.8
+
+WORKDIR /home/ubuntu
+
+#clone RestFuzzBench
+ADD  ./run.sh run.sh
+ADD ./wordpress.sh wordpress.sh
+ADD  ./webapi.json webapi.json
 
 
 #Set up Fuzzers
 RUN git clone https://github.com/avpatel26/restler-fuzzer.git && \
     cd restler-fuzzer && \
     mkdir restler_bin
+
+ENV restler = "/home/ubuntu/restler-fuzzer"
+
 
