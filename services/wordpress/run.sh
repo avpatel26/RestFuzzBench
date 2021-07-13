@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##Install wordpress
-sudo chmod +x wordpress.sh 
+sudo chmod +x wordpress.sh
 sudo ./wordpress.sh
 
 ##Delete Installed files
@@ -15,7 +15,7 @@ dotnet nuget locals all --clear
 
 
 ## Compile and generate Restler grammar from specification
-cd restler_bin/restler 
+cd restler_bin/restler
 chmod a+x Restler
-./Restler compile --api_spec home/ubuntu/webapi.json
+./Restler compile --api_spec /home/ubuntu/webapi.json
 
