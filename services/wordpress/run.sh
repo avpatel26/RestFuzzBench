@@ -1,5 +1,9 @@
 #!/bin/bash
 
+sudo apt install python3
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
+
 ##Install wordpress
 sudo chmod +x wordpress.sh
 sudo ./wordpress.sh
@@ -7,15 +11,11 @@ sudo ./wordpress.sh
 ##Delete Installed files
 rm -rf latest.tar.gz wordpress
 
-##Compile Restler
-
-cd restler-fuzzer
-python3.8 ./build-restler.py --dest_dir ./restler_bin/
-dotnet nuget locals all --clear
-
-
 ## Compile and generate Restler grammar from specification
-cd restler_bin/restler
-chmod a+x Restler
-./Restler compile --api_spec /home/ubuntu/webapi.json
+cd restler-fuzzer/restler_bin/
+./restler/Restler compile --api_spec /home/ubuntu/webapi.json
+./restler/Restler test --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --no_ssl
+./restler/Restler fuzz-lean --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --no_ssl
+./restler/Restler fuzz --grammar_file ./Compile/grammar.py --dictionary_file ./Compile/dict.json --no_ssl
+
 

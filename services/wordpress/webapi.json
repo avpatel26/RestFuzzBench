@@ -5,10 +5,10 @@
     "version": "v2",
     "title": "WordPress REST API"
   },
-  "host": "localhost/mysite",
-  "basePath": "/wp-json/wp/v2",
+  "host": "localhost:80",
+  "basePath": "/index.php/wp-json/wp/v2",
   "schemes": [
-    "https"
+    "http"
   ],
   "consumes": [
     "application/json",

@@ -11,7 +11,8 @@ RUN apt-get -y update && \
     python-pip \
     nano \
     net-tools \
-    vim
+    vim \
+    curl 
 
 RUN apt-get install wget
 RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
@@ -29,13 +30,15 @@ WORKDIR /home/ubuntu
 ADD  ./run.sh run.sh
 ADD ./wordpress.sh wordpress.sh
 ADD  ./webapi.json webapi.json
-
+ADD ./.htaccess .htaccess
 
 #Set up Fuzzers
-RUN git clone https://github.com/avpatel26/restler-fuzzer.git && \
+RUN git clone https://github.com/microsoft/restler-fuzzer.git && \
     cd restler-fuzzer && \
-    mkdir restler_bin
+    mkdir restler_bin && \
+    python3.8 ./build-restler.py --dest_dir ./restler_bin/ && \
+    dotnet nuget locals all --clear
 
-ENV restler = "/home/ubuntu/restler-fuzzer"
+
 
 
