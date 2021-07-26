@@ -59,6 +59,7 @@ wp config create --dbname=$db_name --dbuser=root --dbpass=$db_password --locale=
 wp core install --url=localhost/restfuzz.com --title=restfuzz --admin_user=root --admin_password=root --admin_email=avi@gmail.com --allow-root
 
 sudo mv /home/ubuntu/.htaccess /var/www/html/
+sudo cp /home/ubuntu/webapi.json /var/www/html/
 chmod 664 .htaccess
 
 a2enmod rewrite

@@ -8,7 +8,7 @@ RUN apt-get -y update && \
     openssl \
     clang \
     git \
-    python-pip \
+    python3-pip \
     nano \
     net-tools \
     vim \
@@ -24,6 +24,9 @@ RUN  sudo apt-get install -y dotnet-sdk-5.0
 
 RUN sudo apt-get -y install python3.8
 
+RUN sudo apt-get update
+RUN sudo apt install default-jdk -y
+
 WORKDIR /home/ubuntu
 
 #clone RestFuzzBench
@@ -32,13 +35,17 @@ ADD ./wordpress.sh wordpress.sh
 ADD  ./webapi.json webapi.json
 ADD ./.htaccess .htaccess
 
-#Set up Fuzzers
+#Set up Restler
 RUN git clone https://github.com/microsoft/restler-fuzzer.git && \
     cd restler-fuzzer && \
     mkdir restler_bin && \
     python3.8 ./build-restler.py --dest_dir ./restler_bin/ && \
     dotnet nuget locals all --clear
 
-
-
+#Set up EvoMaster
+RUN sudo apt-get update
+RUN sudo apt install unzip
+RUN wget https://github.com/EMResearch/EvoMaster/releases/download/v1.2.1/evomaster.jar.zip
+RUN unzip evomaster.jar.zip 
+RUN rm evomaster.jar.zip
 

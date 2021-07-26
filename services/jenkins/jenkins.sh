@@ -1,4 +1,6 @@
-sudo apt  install default-jre
+sudo apt-get update
+sudo apt install default-jdk -y
+
 
 wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
 sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > \
@@ -6,8 +8,8 @@ sudo sh -c 'echo deb https://pkg.jenkins.io/debian-stable binary/ > \
 sudo apt-get update
 sudo apt-get install jenkins
 
-sudo systemctl start jenkins
-sudo systemctl status jenkins
+sudo service start jenkins
+sudo service status jenkins
 
 sudo ufw allow 8080
 sudo ufw enable
