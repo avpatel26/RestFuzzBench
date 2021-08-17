@@ -14,7 +14,7 @@ git checkout develop
 
 ```
 cd services/wordpress/
-sudo docker build . -t wordpress
+sudo docker build . -t wordpress --build-arg db_name=<mysql_db_name > --build-arg db_password=<database_password> 
 ```
 
 ## 3rd step: Run docker container and Fuzzer
