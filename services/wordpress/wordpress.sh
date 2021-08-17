@@ -2,24 +2,18 @@
 
 ###### wordpress installation #####
 
+echo "Wordpress installation started"
+
+export db_name=$1
+export db_password=$2
+
 ## system update
 apt-get update -y
 
-## Install Apache web server
-sudo apt-get install apache2 apache2-utils -y
-/etc/init.d/apache2 start
-
-## Install PHP
-apt-get install php libapache2-mod-php php-mysql -y
-
 ## Install MySQL database server
-
-read -p 'Enter db_root_password: ' db_password
 export DEBIAN_FRONTEND="noninteractive"
 debconf-set-selections <<< "mysql-server mysql-server/root_password password $db_password"
 debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $db_password"
-sudo apt update
-sudo apt install mysql-server mysql-client -y
 
 service mysql start
 
@@ -33,7 +27,7 @@ mkdir wordpress
 cd wordpress
 wp core download --allow-root
 
-sudo apt install rsync grsync
+##sudo apt install rsync grsync
 
 rm /var/www/html/index.*
 cd ..
@@ -44,10 +38,10 @@ chmod -R 755 /var/www/html/
 
 
 ## Setup database for wordpress
-read -p 'Enter wordpress_db_name: ' db_name
 mysql -u root -p$db_password << QUERY_INPUT
 CREATE DATABASE $db_name;
 GRANT ALL PRIVILEGES ON $db_name.* TO 'root'@'localhost' IDENTIFIED BY '$db_password';
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$db_password';
 FLUSH PRIVILEGES;
 EXIT
 QUERY_INPUT
@@ -76,9 +70,6 @@ update wp_options SET option_value = '/archives/%post_id%' where option_name = '
 EXIT
 QUERY_INPUT
 
+rm -rf latest.tar.gz wordpress
 
-service apache2 restart
-service mysql restart
-
-
-echo  "Installation is Complete"
+echo  " Wordpress Installation is Complete"

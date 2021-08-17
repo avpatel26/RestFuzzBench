@@ -1,5 +1,9 @@
-# Install Dependency for Restler Fuzzer
+# Install Dependency for RestFuzzBench
 FROM ubuntu:18.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG db_name=db
+ARG db_password=root
 
 RUN apt-get -y update && \
     apt-get -y install sudo \
@@ -12,28 +16,49 @@ RUN apt-get -y update && \
     nano \
     net-tools \
     vim \
-    curl 
+    curl \
+    wget 
 
-RUN apt-get install wget
-RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-RUN sudo dpkg -i packages-microsoft-prod.deb
-RUN sudo apt-get update; 
-RUN sudo apt-get install -y apt-transport-https
-RUN  sudo apt-get update 
-RUN  sudo apt-get install -y dotnet-sdk-5.0
+# Install dotnet packages for Restler 
+RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
+    sudo dpkg -i packages-microsoft-prod.deb && \
+    sudo apt-get update && \
+    sudo apt-get install -y apt-transport-https && \
+    sudo apt-get update && \
+    sudo apt-get install -y dotnet-sdk-5.0
 
 RUN sudo apt-get -y install python3.8
 
-RUN sudo apt-get update
-RUN sudo apt install default-jdk -y
+# Install wordpress dependencies
+RUN sudo apt-get update && \
+    sudo apt install default-jdk -y && \
+    sudo apt-get install apache2 apache2-utils -y && \
+    sudo apt install mysql-server mysql-client -y && \
+    sudo apt install rsync grsync -y
+
+## Install PHP
+ENV TZ=Australia/Melbourne
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt-get install php libapache2-mod-php php-mysql -y
+
 
 WORKDIR /home/ubuntu
 
-#clone RestFuzzBench
+
+#clone RestFuzzBench files
 ADD  ./run.sh run.sh
 ADD ./wordpress.sh wordpress.sh
 ADD  ./webapi.json webapi.json
 ADD ./.htaccess .htaccess
+ADD ./code_coverage.php code_coverage.php
+
+# Wordpress setup
+RUN chmod +x wordpress.sh && \
+    ./wordpress.sh $db_name $db_password
+
+RUN service apache2 restart
+RUN service mysql restart
+
 
 #Set up Restler
 RUN git clone https://github.com/microsoft/restler-fuzzer.git && \
@@ -43,9 +68,27 @@ RUN git clone https://github.com/microsoft/restler-fuzzer.git && \
     dotnet nuget locals all --clear
 
 #Set up EvoMaster
-RUN sudo apt-get update
-RUN sudo apt install unzip
-RUN wget https://github.com/EMResearch/EvoMaster/releases/download/v1.2.1/evomaster.jar.zip
-RUN unzip evomaster.jar.zip 
-RUN rm evomaster.jar.zip
+RUN sudo apt-get update && \
+    sudo apt install unzip && \
+    wget https://github.com/EMResearch/EvoMaster/releases/download/v1.2.1/evomaster.jar.zip && \
+    unzip evomaster.jar.zip && \ 
+    rm evomaster.jar.zip 
 
+# Set up of Schemathesis
+RUN sudo apt install python3 && \
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 && \
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2 && \
+    sudo apt-get install python3.8-dev -y && \
+    sudo apt-get install libpython3.8-dev -y && \
+    pip3 install schemathesis
+
+# Set up of code coverage tool
+RUN sudo apt install php-dev -y && \
+    pecl install xdebug &&\
+    sudo echo -e "zend_extension=xdebug;\n xdebug.mode = coverage; \nxdebug.client_host=127.0.0.1; \nxdebug.client_port=80;" >> /etc/php/7.2/apache2/php.ini && \
+    sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.2/apache2/php.ini && \
+    sudo apt install composer -y && \
+    composer require phpunit/php-code-coverage && \
+    
+    
+    
