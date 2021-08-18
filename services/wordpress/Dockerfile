@@ -27,8 +27,6 @@ RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-p
     sudo apt-get update && \
     sudo apt-get install -y dotnet-sdk-5.0
 
-RUN sudo apt-get -y install python3.8
-
 # Install wordpress dependencies
 RUN sudo apt-get update && \
     sudo apt install default-jdk -y && \
@@ -39,10 +37,13 @@ RUN sudo apt-get update && \
 ## Install PHP
 ENV TZ=Australia/Melbourne
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    apt-get install php libapache2-mod-php php-mysql -y
-
+    sudo apt install software-properties-common -y && \
+    sudo add-apt-repository ppa:ondrej/php && \
+    sudo apt update &&\
+    sudo apt install php7.4 libapache2-mod-php7.4 php7.4-mysql -y  
 
 WORKDIR /home/ubuntu
+RUN sudo apt-get -y install python3.8
 
 
 #clone RestFuzzBench files
@@ -58,7 +59,6 @@ RUN chmod +x wordpress.sh && \
 
 RUN service apache2 restart
 RUN service mysql restart
-
 
 #Set up Restler
 RUN git clone https://github.com/microsoft/restler-fuzzer.git && \
@@ -83,12 +83,14 @@ RUN sudo apt install python3 && \
     pip3 install schemathesis
 
 # Set up of code coverage tool
-RUN sudo apt install php-dev -y && \
+RUN sudo apt install php7.4-dev php7.4-xml -y && \
     pecl install xdebug &&\
-    sudo echo -e "zend_extension=xdebug;\n xdebug.mode = coverage; \nxdebug.client_host=127.0.0.1; \nxdebug.client_port=80;" >> /etc/php/7.2/apache2/php.ini && \
-    sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.2/apache2/php.ini && \
+    sudo echo -e "zend_extension=xdebug;\n xdebug.mode = coverage; \nxdebug.client_host=127.0.0.1; \nxdebug.client_port=80;" >> /etc/php/7.4/apache2/php.ini && \
+    sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini && \
     sudo apt install composer -y && \
     composer require phpunit/php-code-coverage && \
+    mkdir log && \
+    sudo chmod -R a+rwx log/
     
-    
-    
+ENTRYPOINT service mysql start && service apache2 start && /bin/bash
+

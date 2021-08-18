@@ -7,7 +7,7 @@ use SebastianBergmann\CodeCoverage\CodeCoverage;
 use SebastianBergmann\CodeCoverage\Report\PHP as PhpReport;
 
 $filter = new Filter;
-$filter->includeDirectory('/var/www/html/');
+$filter->includeDirectory('/var/www/html/wp-includes/rest-api/');
 
 $coverage=new CodeCoverage(
 	(new Selector)->forLineCoverage($filter),

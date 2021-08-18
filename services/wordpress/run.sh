@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 ## Compile and generate Restler grammar from specification
 cd restler-fuzzer/restler_bin/
 ./restler/Restler compile --api_spec /home/ubuntu/webapi.json
