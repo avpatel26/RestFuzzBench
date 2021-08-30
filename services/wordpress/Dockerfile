@@ -6,26 +6,34 @@ ARG db_name=db
 ARG db_password=root
 
 RUN apt-get -y update && \
-    apt-get -y install sudo \
+    apt-get -y install sudo --no-install-recommends \
     apt-utils \
     build-essential \
     openssl \
     clang \
     git \
     python3-pip \
+    python \
     nano \
     net-tools \
     vim \
     curl \
-    wget 
-
+    wget \
+    ca-certificates\
+    libc6 \
+    libgcc1 \
+    libgssapi-krb5-2 \
+    libicu60 \
+    libssl1.1 \
+    libstdc++6 \
+    zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+    
 # Install dotnet packages for Restler 
-RUN wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb && \
-    sudo dpkg -i packages-microsoft-prod.deb && \
-    sudo apt-get update && \
-    sudo apt-get install -y apt-transport-https && \
-    sudo apt-get update && \
-    sudo apt-get install -y dotnet-sdk-5.0
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel 5.0 -InstallDir /usr/share/dotnet \
+    && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
+
 
 # Install wordpress dependencies
 RUN sudo apt-get update && \
@@ -44,7 +52,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone &
 
 WORKDIR /home/ubuntu
 RUN sudo apt-get -y install python3.8
-
 
 #clone RestFuzzBench files
 ADD  ./run.sh run.sh
@@ -80,6 +87,7 @@ RUN sudo apt install python3 && \
     sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2 && \
     sudo apt-get install python3.8-dev -y && \
     sudo apt-get install libpython3.8-dev -y && \
+    sudo apt-get install python3-setuptools -y && \
     pip3 install schemathesis
 
 # Set up of code coverage tool
@@ -89,8 +97,7 @@ RUN sudo apt install php7.4-dev php7.4-xml -y && \
     sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini && \
     sudo apt install composer -y && \
     composer require phpunit/php-code-coverage && \
+    composer require vlucas/phpdotenv && \
     mkdir log && \
-    sudo chmod -R a+rwx log/
-    
-ENTRYPOINT service mysql start && service apache2 start && /bin/bash
-
+    sudo chmod -R a+rwx log/ && \
+    chmod +x run.sh
