@@ -59,6 +59,7 @@ ADD ./wordpress.sh wordpress.sh
 ADD  ./webapi.json webapi.json
 ADD ./.htaccess .htaccess
 ADD ./code_coverage.php code_coverage.php
+ADD ./token.py token.py
 
 # Wordpress setup
 RUN chmod +x wordpress.sh && \

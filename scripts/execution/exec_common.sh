@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#./exec_common wordpress /home/avi/Desktop/ 2 evomaster evomaster 400 5
+#./exec_common wordpress /home/avi/Desktop/ 2 restler restler 200 5 test root root
 
 IMAGE=$1 # Image name
 RESULT=$2 # path of folder to store Final result of the test
@@ -11,12 +11,16 @@ FUZZER=$4 # Fuzzer name (schemathesis,restler,evomaster)
 OUTDIR=$5 # result folder in container
 TIME=$6 # time for running the fuzzer
 SKIPCOUNT=$7
+CONFIG=$8
+USERNAME=$9
+PASSWORD=$10
+
 
 containers_array=()
 containers_list=""
 
 for ((i=1;i<=RUNS;i++)); do
-	id=$(docker run -d -it $IMAGE /bin/bash -c "cd /home/ubuntu/ && ./run.sh ${FUZZER} ${OUTDIR} ${TIME} ${SKIPCOUNT}")
+	id=$(docker run -d -it $IMAGE /bin/bash -c "cd /home/ubuntu/ && ./run.sh ${FUZZER} ${OUTDIR} ${TIME} ${SKIPCOUNT} ${CONFIG} ${USERNAME} ${PASSWORD}")
 	containers_array[i]="${id::12}" 
 	containers_list+=" ${containers_array[i]}"
 done
@@ -38,7 +42,7 @@ printf "Merging and generating report of code coverage for experiment"
 wget https://phar.phpunit.de/phpcov.phar
 
 for ((i=1;i<=RUNS;i++)); do
-	php phpcov.phar merge --html ${RESULT}/${OUTDIR}_${i}/ ${RESULT}/${OUTDIR}_${i}/
+	php phpcov.phar merge --text ${RESULT}/${OUTDIR}_${i}/ ${RESULT}/${OUTDIR}_${i}/
 done
 
 rm ./phpcov.phar

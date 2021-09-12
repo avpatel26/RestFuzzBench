@@ -56,6 +56,11 @@ sudo mv /home/ubuntu/.htaccess /var/www/html/
 sudo cp /home/ubuntu/webapi.json /var/www/html/
 chmod 664 .htaccess
 
+cd /var/www/html/wp-content/plugins/
+
+git clone https://github.com/WP-API/Basic-Auth.git
+wp plugin activate Basic-Auth --allow-root
+
 a2enmod rewrite
 php5enmod mcrypt
 
