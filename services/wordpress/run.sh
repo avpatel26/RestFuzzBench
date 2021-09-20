@@ -43,7 +43,7 @@ if [ $FUZZER = "restler" ]; then
 elif [ $FUZZER = "schemathesis" ]; then
 
 	## Generate Schemathesis testcases
-	timeout -k 0 $TIME schemathesis run --checks all --auth $USERNAME:$PASSWORD  http://localhost/webapi.json
+	timeout -k 0 $TIME schemathesis run --checks all --auth $USERNAME:$PASSWORD --store-network-log=./output.yaml  http://localhost/webapi.json --validate-schema=false
 	wait
 	
 elif [ $FUZZER = "evomaster" ]; then
@@ -59,6 +59,33 @@ else
 	
 fi
 
+sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini
+
+echo "Time,subject,fuzzer,run,cov_type,coverage" >> covfile
+sudo chmod -R a+rwx ./covfile
+
+if [ $FUZZER = "restler" ]; then
+
+        ## Compile and generate Restler grammar from specification
+        cd restler-fuzzer/restler_bin/
+
+elif [ $FUZZER = "schemathesis" ]; then
+
+        ## Generate Schemathesis testcases
+        schemathesis replay output.yaml
+        wait
+elif [ $FUZZER = "evomaster" ]; then
+
+        ## Generate evoMaster testcases
+        cd /home/ubuntu/
+        timeout -k 0 $TIME java -jar evomaster.jar --blackBox true --bbSwaggerUrl http://localhost/webapi.json --outputFormat JAVA_JUNIT_4 -$
+        wait
+
+else
+        
+        echo "Invalid Fuzzer Name!!"
+
+fi
 
 
 

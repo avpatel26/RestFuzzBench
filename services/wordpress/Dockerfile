@@ -95,10 +95,11 @@ RUN sudo apt install python3 && \
 RUN sudo apt install php7.4-dev php7.4-xml -y && \
     pecl install xdebug &&\
     sudo echo -e "zend_extension=xdebug;\n xdebug.mode = coverage; \nxdebug.client_host=127.0.0.1; \nxdebug.client_port=80;" >> /etc/php/7.4/apache2/php.ini && \
-    sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini && \
+    sudo sed -e '/^[^;]*memory_limit/s/=.*$/= \-1/' -i.bak /etc/php/7.4/apache2/php.ini && \
     sudo apt install composer -y && \
     composer require phpunit/php-code-coverage && \
     composer require vlucas/phpdotenv && \
+    wget https://phar.phpunit.de/phpcov.phar && \
     mkdir log && \
     sudo chmod -R a+rwx log/ && \
     chmod +x run.sh
