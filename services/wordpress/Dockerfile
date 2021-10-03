@@ -54,16 +54,18 @@ WORKDIR /home/ubuntu
 RUN sudo apt-get -y install python3.8
 
 #clone RestFuzzBench files
-ADD  ./run.sh run.sh
+ADD ./run.sh run.sh
 ADD ./wordpress.sh wordpress.sh
-ADD  ./webapi.json webapi.json
+ADD ./webapi.json webapi.json
 ADD ./.htaccess .htaccess
 ADD ./code_coverage.php code_coverage.php
-ADD ./token.py token.py
+ADD ./authtoken.py authtoken.py
+ADD ./log-replay.py log-replay.py
 
 # Wordpress setup
 RUN chmod +x wordpress.sh && \
-    ./wordpress.sh $db_name $db_password
+    ./wordpress.sh $db_name $db_password && \
+    rm ./wordpress.sh
 
 RUN service apache2 restart
 RUN service mysql restart
@@ -95,11 +97,13 @@ RUN sudo apt install python3 && \
 RUN sudo apt install php7.4-dev php7.4-xml -y && \
     pecl install xdebug &&\
     sudo echo -e "zend_extension=xdebug;\n xdebug.mode = coverage; \nxdebug.client_host=127.0.0.1; \nxdebug.client_port=80;" >> /etc/php/7.4/apache2/php.ini && \
-    sudo sed -e '/^[^;]*memory_limit/s/=.*$/= \-1/' -i.bak /etc/php/7.4/apache2/php.ini && \
+    sudo sed -e '/^[^;]*memory_limit/s/=.*$/=\-1/' -i.bak /etc/php/7.4/apache2/php.ini && \
     sudo apt install composer -y && \
     composer require phpunit/php-code-coverage && \
     composer require vlucas/phpdotenv && \
     wget https://phar.phpunit.de/phpcov.phar && \
     mkdir log && \
     sudo chmod -R a+rwx log/ && \
-    chmod +x run.sh
+    chmod +x run.sh && \
+    pip3 install wheel && \
+    pip3 install apache_log_parser

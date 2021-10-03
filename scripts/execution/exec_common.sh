@@ -11,9 +11,9 @@ FUZZER=$4 # Fuzzer name (schemathesis,restler,evomaster)
 OUTDIR=$5 # result folder in container
 TIME=$6 # time for running the fuzzer
 SKIPCOUNT=$7
-CONFIG=$8
-USERNAME=$9
-PASSWORD=$10
+CONFIG=$8 # configuration for restler mode (fuzz,fuzzlean,test)
+USERNAME=$9 # username for api authentication
+PASSWORD=$10 # password for api authentication
 
 
 containers_array=()
@@ -32,17 +32,9 @@ wait
 printf "Collecting results...\n"
 
 for ((i=1;i<=RUNS;i++)); do
-	docker cp ${containers_array[i]}:/home/ubuntu/log/${OUTDIR}/ ${RESULT}/${OUTDIR}_${i}/ > /dev/null
+	mkdir ${RESULT}/${OUTDIR}_${i}/
+	docker cp ${containers_array[i]}:/home/ubuntu/covfile ${RESULT}/${OUTDIR}_${i}/ > /dev/null
 done
 
 printf "Experiment is done!! \n"
 
-printf "Merging and generating report of code coverage for experiment"
-
-wget https://phar.phpunit.de/phpcov.phar
-
-for ((i=1;i<=RUNS;i++)); do
-	php phpcov.phar merge --text ${RESULT}/${OUTDIR}_${i}/ ${RESULT}/${OUTDIR}_${i}/
-done
-
-rm ./phpcov.phar

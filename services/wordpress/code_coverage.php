@@ -36,7 +36,6 @@ function save_coverage()
         shell_exec($merge);
 
         $time=$_SERVER['REQUEST_TIME'];
-        $fuzzer=$_ENV['FUZZER'];
         $file = file("/home/ubuntu/log/coverage.txt");
 
         $branch = $file[9];
@@ -54,20 +53,12 @@ function save_coverage()
         $exp="/\([0-9]+\//";
         preg_match($exp,$line[4],$x);
         $l_abs=substr($x[0],1,-1);
-        $list=array(
-                    array($time,"wordpress",$fuzzer,"1","l_per",$l_per),
-                    array($time,"wordpress",$fuzzer,"1","l_abs",$l_abs),
-                    array($time,"wordpress",$fuzzer,"1","b_per",$branch_per),
-                    array($time,"wordpress",$fuzzer,"1","b_abs",$branch_abs)
-        );
+	$list=array($time,$l_per,$l_abs,$branch_per,$branch_abs);
+	
         $fp=fopen('/home/ubuntu/covfile','a');
-        foreach ($list as $line){
-                fputcsv($fp,$line);
-        }
+	fputcsv($fp,$list);
         fclose($fp);
         shell_exec("rm home/ubuntu/log/coverage.txt");
-
-
 }
 
 register_shutdown_function('save_coverage');

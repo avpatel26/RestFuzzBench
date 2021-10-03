@@ -10,13 +10,15 @@ CONFIG=$5
 USERNAME=$6
 PASSWORD=$7
 
-
 service mysql start
 wait
+if ! pgrep -q mysql; then
+        service mysql start
+fi
 service apache2 start
 wait
 
-echo -e "SKIPCOUNT=$SKIPCOUNT\nRUNCOUNT=$SKIPCOUNT\nOUTDIR=$OUTDIR" > ./.env
+echo -e "SKIPCOUNT=$SKIPCOUNT\nRUNCOUNT=$SKIPCOUNT\nOUTDIR=$OUTDIR\nFUZZER=$FUZZER" > ./.env
 sudo chmod -R a+rwx ./.env
 
 mkdir /home/ubuntu/log/${OUTDIR}
@@ -33,7 +35,7 @@ if [ $FUZZER = "restler" ]; then
 					   --dictionary_file ./Compile/dict.json \
 					   --no_ssl \
 					   --time_budget $RTIME \
-					   --token_refresh_command "python3 /home/ubuntu/token.py ${USERNAME} ${PASSWORD}" \
+					   --token_refresh_command "python3 /home/ubuntu/authtoken.py ${USERNAME} ${PASSWORD}" \
 					   --token_refresh_interval $TIME  
 		wait
 	else
@@ -43,7 +45,8 @@ if [ $FUZZER = "restler" ]; then
 elif [ $FUZZER = "schemathesis" ]; then
 
 	## Generate Schemathesis testcases
-	timeout -k 0 $TIME schemathesis run --checks all --auth $USERNAME:$PASSWORD --store-network-log=./output.yaml  http://localhost/webapi.json --validate-schema=false
+	COUNT=$((TIME*5/136))
+	timeout -k 0 $TIME schemathesis run --checks all --auth $USERNAME:$PASSWORD --store-network-log=./output.yaml  http://localhost/webapi.json --validate-schema=false --hypothesis-max-examples=$COUNT
 	wait
 	
 elif [ $FUZZER = "evomaster" ]; then
@@ -59,27 +62,31 @@ else
 	
 fi
 
-sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/= \/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini
+mkdir /home/ubuntu/accesslogs
+cd /var/log/apache2/
+find . -name 'access*' -exec mv {} /home/ubuntu/accesslogs \;
 
-echo "Time,subject,fuzzer,run,cov_type,coverage" >> covfile
+cd /home/ubuntu/
+sudo sed -e '/^[^;]*auto_prepend_file/s/=.*$/=\/home\/ubuntu\/code_coverage.php/' -i.bak /etc/php/7.4/apache2/php.ini
+echo "time,l_per,l_abs,b_per,b_abs" >> covfile
 sudo chmod -R a+rwx ./covfile
+service apache2 restart
 
+																																																																																																																																																																																																																																																																																																																																																																																																																																																																																									
 if [ $FUZZER = "restler" ]; then
 
-        ## Compile and generate Restler grammar from specification
-        cd restler-fuzzer/restler_bin/
+	## Replay access.log for  coverage
+        python3 ./log-replay.py ${USERNAME} ${PASSWORD}
 
 elif [ $FUZZER = "schemathesis" ]; then
 
-        ## Generate Schemathesis testcases
+        ## Replay Schemathesis for coverage
         schemathesis replay output.yaml
         wait
 elif [ $FUZZER = "evomaster" ]; then
 
-        ## Generate evoMaster testcases
-        cd /home/ubuntu/
-        timeout -k 0 $TIME java -jar evomaster.jar --blackBox true --bbSwaggerUrl http://localhost/webapi.json --outputFormat JAVA_JUNIT_4 -$
-        wait
+        ## Replay access.log for coverage
+        python3 ./log-replay.py ${USERNAME} ${PASSWORD}
 
 else
         
