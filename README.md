@@ -10,11 +10,15 @@ cd RestFuzzBench/
 git checkout develop
 ```
 
-## 2nd step: Build a docker image
+## 2nd step: Build a docker image or Download docker image
 
 ```
 cd services/wordpress/
 sudo docker build . -t wordpress --build-arg db_name=<mysql_db_name > --build-arg db_password=<database_password> 
+```
+
+```
+docker pull avipatel2/restfuzzwc:latest
 ```
 
 ## 3rd step: Run docker container and Fuzzer
